@@ -212,7 +212,7 @@ function isObjectShape(value: JsonSchemaShape | undefined): value is JsonSchemaS
 export function diffSchemaShapes(
   baseline: JsonSchemaShape,
   current: JsonSchemaShape,
-  prefix = '',
+  prefix = ''
 ): SchemaCompatibilityIssue[] {
   const issues: SchemaCompatibilityIssue[] = [];
   const at = (segment: string) => (prefix ? `${prefix}.${segment}` : segment);
@@ -243,27 +243,47 @@ export function diffSchemaShapes(
     for (const key of Object.keys(currentProps)) {
       if (!(key in baselineProps)) {
         issues.push({ path: at(key), message: 'new field added to live schema (snapshot drift)' });
-        issues.push({ path: at(key), message: 'new field added — regenerate snapshots with npm run snapshots:write' });
+        issues.push({
+          path: at(key),
+          message: 'new field added — regenerate snapshots with npm run snapshots:write',
+        });
         continue;
       }
     }
 
     for (const key of baselineRequired) {
       if (!(key in baseline.properties ?? {})) {
-        issues.push({ path: at(key), message: 'required field missing from snapshot properties (orphaned reference)' });
+        issues.push({
+          path: at(key),
+          message: 'required field missing from snapshot properties (orphaned reference)',
+        });
       }
       if (!(key in currentProps)) {
-        issues.push({ path: at(key), message: 'field removed from live schema but still required in snapshot' });
+        issues.push({
+          path: at(key),
+          message: 'field removed from live schema but still required in snapshot',
+        });
       } else if (!currentRequired.has(key)) {
-        issues.push({ path: at(key), message: 'field is no longer required (may be breaking for strict clients)' });
+        issues.push({
+          path: at(key),
+          message: 'field is no longer required (may be breaking for strict clients)',
+        });
       }
     }
 
     for (const key of currentRequired) {
-      if (!(key in current.properties ?? {})) {
-        issues.push({ path: at(key), message: 'required field missing from live schema properties (invalid schema)' });
+      if (!(key in (current.properties ?? {}))) {
+        issues.push({
+          path: at(key),
+          message: 'required field missing from live schema properties (invalid schema)',
+        });
+      }
+
       if (!baselineRequired.has(key)) {
-        issues.push({ path: at(key), message: 'field is now required — regenerate snapshots with npm run snapshots:write' });
+        issues.push({
+          path: at(key),
+          message: 'field is now required — regenerate snapshots with npm run snapshots:write',
+        });
       }
     }
   }
@@ -316,7 +336,7 @@ export function checkSnapshotCompatibility(): SchemaCompatibilityIssue[] {
 
 export function validateResponseAgainstSchema(
   endpoint: CriticalEndpoint,
-  payload: unknown,
+  payload: unknown
 ): { success: boolean; error?: string } {
   const schema = ENDPOINT_SCHEMAS[endpoint];
   const result = schema.safeParse(payload);

@@ -34,18 +34,16 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
 # ---------- build ----------
 FROM fetch AS build
 COPY backend backend
+COPY packages/api-schemas packages/api-schemas
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --offline --frozen-lockfile --filter backend...
+    pnpm install --offline --frozen-lockfile --filter yieldvault-backend...
 
-RUN pnpm --filter backend exec prisma generate \
- && pnpm --filter backend run build
+RUN pnpm --filter yieldvault-backend exec prisma generate \
+ && pnpm --filter yieldvault-backend run build
 
 # Production-only, self-contained copy of the backend package
 # (requires "dist" to be covered by backend/package.json "files", or no "files" field)
-RUN pnpm --filter backend deploy --prod /out
-# Regenerate the Prisma client inside the deployed tree
-# (requires `prisma` to be in backend "dependencies", not only devDependencies)
-RUN cd /out && ./node_modules/.bin/prisma generate
+RUN pnpm --filter yieldvault-backend deploy --prod /out
 
 # ---------- runtime ----------
 FROM node:${NODE_VERSION}-alpine AS runtime
